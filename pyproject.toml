@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "calflops"
+version = "0.3.3"
+description = "A tool to compute FLOPs, MACs, and parameters in various neural networks."
+readme = "README.md"
+requires-python = ">=3.6"
+license = {text = "MIT"}
+authors = [
+    {name = "MrYxJ"}
+]
+dependencies = [
+    "torch>=1.0.0",
+]
+
+[tool.setuptools]
+packages = ["calflops"]

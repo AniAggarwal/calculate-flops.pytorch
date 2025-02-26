@@ -36,7 +36,9 @@ def calculate_flops(model,
                     output_precision=2,
                     output_unit=None,
                     ignore_modules=None,
-                    is_sparse=False):
+                    is_sparse=False,
+                    return_output=False
+                    ):
     """Returns the total floating-point operations, MACs, and parameters of a model.
 
     Args:
@@ -55,6 +57,7 @@ def calculate_flops(model,
         output_unit (str, optional): The unit used to output the result value, such as T, G, M, and K. Default is None, that is the unit of the output decide on value.
         ignore_modules ([type], optional): the list of modules to ignore during profiling. Defaults to None.
         is_sparse (bool, optional): Whether to exclude sparse matrix flops. Defaults to False.
+        return_output (bool, optional): Whether to return the output of the model, mutually exclusive with output_as_string. Defaults to False.
 
     Example:
     .. code-block:: python
@@ -108,6 +111,7 @@ def calculate_flops(model,
 
     assert isinstance(model, nn.Module), "model must be a PyTorch module"
     # assert transformers_tokenizer and auto_generate_transformers_input and "transformers" in str(type(model)), "The model must be a transformers model if args of auto_generate_transformers_input is True and transformers_tokenizer is not None"
+    assert not (output_as_string and return_output), "output_as_string and return_output are mutually exclusive"
     model.eval()
 
     is_transformer = True if "transformers" in str(type(model)) else False
@@ -162,9 +166,9 @@ def calculate_flops(model,
             args[index] = args[index].to(device)
 
     if forward_mode == 'forward':
-        _ = model(*args, **kwargs)
+        model_output = model(*args, **kwargs)
     elif forward_mode == 'generate':
-        _ = model.generate(*args, **kwargs)
+        model_output = model.generate(*args, **kwargs)
     else:
         raise NotImplementedError("forward_mode should be either forward or generate")
 
@@ -187,5 +191,8 @@ def calculate_flops(model,
         return flops_to_string(flops, units=output_unit, precision=output_precision), \
             macs_to_string(macs, units=output_unit, precision=output_precision), \
             params_to_string(params, units=output_unit, precision=output_precision)
-
-    return flops, macs, params
+    
+    if return_output:
+        return flops, macs, params, model_output
+    else:
+        return flops, macs, params

@@ -37,7 +37,8 @@ def calculate_flops(model,
                     output_unit=None,
                     ignore_modules=None,
                     is_sparse=False,
-                    return_output=False
+                    return_output=False,
+                    assume_model_on_device=False,
                     ):
     """Returns the total floating-point operations, MACs, and parameters of a model.
 
@@ -58,6 +59,7 @@ def calculate_flops(model,
         ignore_modules ([type], optional): the list of modules to ignore during profiling. Defaults to None.
         is_sparse (bool, optional): Whether to exclude sparse matrix flops. Defaults to False.
         return_output (bool, optional): Whether to return the output of the model, mutually exclusive with output_as_string. Defaults to False.
+        assume_model_on_device (bool, optional): Whether to assume the model is on the device; if False, the model will be moved to the device. Defaults to False.
 
     Example:
     .. code-block:: python
@@ -123,7 +125,8 @@ def calculate_flops(model,
     calculate_flops_pipline.start_flops_calculate(ignore_list=ignore_modules)
 
     device = next(model.parameters()).device
-    model = model.to(device)
+    if not assume_model_on_device:
+        model = model.to(device)
 
     if input_shape is not None:
         assert len(args) == 0 and len(
